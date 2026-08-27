@@ -226,16 +226,24 @@ html[data-theme="dark"] .btn-primary { background: linear-gradient(135deg, var(-
 .pipeline-header p { margin: 7px 0 0; font-size: 13.5px; color: var(--ink-soft); }
 .header-actions { display: flex; align-items: center; gap: 10px; }
 .header-actions .search { width: 220px; }
-.board { display: flex; gap: 16px; align-items: flex-start; overflow-x: auto; padding-bottom: 8px; }
+.content-board { height: 100vh; }
+.content-board .board { flex: 1 1 auto; min-height: 0; }
+
+.board { display: flex; gap: 16px; align-items: flex-start; overflow-x: auto; overflow-y: hidden; padding-bottom: 8px; }
 .column { width: 226px; flex-shrink: 0; display: flex; flex-direction: column; gap: 12px; }
-.col-head { padding: 0 2px; }
+.content-board .column { height: 100%; }
+.col-head { padding: 0 2px; flex-shrink: 0; }
 .col-head-top { display: flex; align-items: baseline; gap: 7px; }
 .col-name { font-size: 12.5px; font-weight: 600; color: var(--ink); }
 .col-count { font-size: 11.5px; color: var(--ink-faint); font-variant-numeric: tabular-nums; }
 .col-rule { height: 2px; border-radius: 999px; background: var(--accent); margin-top: 9px; opacity: .55; }
 .col-value { display: block; margin-top: 8px; font-size: 11px; color: var(--ink-faint); font-weight: 500; }
-.column-drop { display: flex; flex-direction: column; gap: 12px; min-height: 60px; border-radius: 14px; transition: background .12s ease; padding: 2px; }
-.column-drop.drag-over { background: var(--surface-accent); }
+.column-drop {
+  display: flex; flex-direction: column; gap: 12px; min-height: 60px; border-radius: 14px;
+  transition: background .12s ease, box-shadow .12s ease; padding: 2px;
+}
+.content-board .column-drop { flex: 1 1 auto; min-height: 0; overflow-y: auto; padding-bottom: 60px; }
+.column-drop.drag-over { background: var(--surface-accent); box-shadow: inset 0 0 0 2px var(--accent); }
 .column-empty { border: 1.5px dashed var(--line-strong); border-radius: 14px; padding: 18px 10px; text-align: center; font-size: 11.5px; color: var(--ink-faint); }
 .lead-card { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 15px; display: flex; flex-direction: column; gap: 10px; box-shadow: 0 1px 2px rgba(20,40,55,.03), 0 14px 26px -22px rgba(20,40,55,.16); backdrop-filter: blur(var(--blur)); -webkit-backdrop-filter: blur(var(--blur)); cursor: grab; }
 .lead-card:active { cursor: grabbing; }

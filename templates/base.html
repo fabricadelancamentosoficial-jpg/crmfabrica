@@ -55,7 +55,7 @@
     </div>
   </aside>
 
-  <main class="content">
+  <main class="content {{ 'content-board' if request.endpoint == 'pipeline' else '' }}">
     {% block content %}{% endblock %}
   </main>
 </div>
