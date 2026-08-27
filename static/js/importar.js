@@ -14,7 +14,6 @@
     { chave: "origem", label: "Origem", obrigatorio: false, aliases: ["origem", "source", "campanha", "campaign name", "campaign_name", "ad name", "ad_name", "anuncio", "anúncio"] },
     { chave: "ticket", label: "Ticket proposto", obrigatorio: false, aliases: ["ticket", "valor", "budget", "orcamento", "orçamento"] },
     { chave: "responsavel", label: "Responsável", obrigatorio: false, aliases: ["responsavel", "responsável", "owner", "dono"] },
-    { chave: "notas", label: "Notas", obrigatorio: false, aliases: ["notas", "observacoes", "observações", "mensagem", "message", "comentario", "comentário"] },
   ];
 
   var headers = [];
@@ -106,6 +105,38 @@
     });
   }
 
+  function montarNotasChecklist() {
+    var wrap = document.getElementById("import-notas-checklist");
+    wrap.innerHTML = "";
+
+    var jaMapeadas = {};
+    CAMPOS.forEach(function (campo) {
+      var select = document.getElementById("map-" + campo.chave);
+      if (select && select.value) jaMapeadas[select.value] = true;
+    });
+
+    if (!headers.length) {
+      var vazio = document.createElement("span");
+      vazio.className = "is-empty";
+      vazio.textContent = "Nenhuma coluna extra encontrada.";
+      wrap.appendChild(vazio);
+      return;
+    }
+
+    headers.forEach(function (h) {
+      var label = document.createElement("label");
+      var input = document.createElement("input");
+      input.type = "checkbox";
+      input.value = h;
+      input.checked = !jaMapeadas[h];
+      var span = document.createElement("span");
+      span.textContent = h;
+      label.appendChild(input);
+      label.appendChild(span);
+      wrap.appendChild(label);
+    });
+  }
+
   function montarPreview() {
     var table = document.getElementById("import-preview-table");
     var thead = table.querySelector("thead");
@@ -146,6 +177,7 @@
       document.getElementById("import-summary").textContent =
         rows.length + " linha" + (rows.length === 1 ? "" : "s") + " encontrada" + (rows.length === 1 ? "" : "s") + " em \"" + file.name + "\"";
       montarMapeamento();
+      montarNotasChecklist();
       montarPreview();
       stepUpload.style.display = "none";
       stepMapping.style.display = "";
@@ -204,11 +236,21 @@
       var responsavelPadrao = document.getElementById("import-responsavel-padrao").value;
       var pularDuplicados = document.getElementById("import-pular-duplicados").checked;
 
+      var colunasNotas = Array.prototype.slice
+        .call(document.querySelectorAll("#import-notas-checklist input:checked"))
+        .map(function (el) { return { coluna: el.value, indice: headers.indexOf(el.value) }; })
+        .filter(function (c) { return c.indice !== -1; });
+
       var leads = rows.map(function (row) {
         function valor(chave) {
           var i = indice[chave];
           return i !== -1 && row[i] !== undefined ? row[i].trim() : "";
         }
+        var notas = colunasNotas
+          .map(function (c) { return { coluna: c.coluna, valor: (row[c.indice] || "").trim() }; })
+          .filter(function (c) { return c.valor; })
+          .map(function (c) { return c.coluna + ": " + c.valor; })
+          .join("\n");
         return {
           nome: valor("nome"),
           telefone: valor("telefone"),
@@ -216,7 +258,7 @@
           origem: valor("origem") || origemPadrao,
           ticket: valor("ticket"),
           responsavel: valor("responsavel") || responsavelPadrao,
-          notas: valor("notas"),
+          notas: notas,
         };
       }).filter(function (l) { return l.nome; });
 

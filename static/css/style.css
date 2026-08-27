@@ -372,6 +372,12 @@ tbody tr.lead-row:hover { background: var(--surface-2); }
 .import-defaults-field input, .import-defaults-field select { width: 100%; padding: 10px 12px; border-radius: 10px; background: var(--surface-2); border: 1px solid var(--line); color: var(--ink); font-size: 13px; font-family: 'Inter'; }
 .import-checkbox { display: flex; align-items: center; gap: 9px; font-size: 13px; color: var(--ink-soft); margin-bottom: 20px; cursor: pointer; }
 .import-checkbox input { width: 16px; height: 16px; accent-color: var(--brand-deep); }
+.import-notas-block { margin: 4px 0 18px; padding-top: 18px; border-top: 1px solid var(--line); }
+.import-notas-block > label { display: block; font-size: 13px; font-weight: 600; color: var(--ink); margin-bottom: 2px; }
+.import-checklist { display: flex; flex-wrap: wrap; gap: 8px; }
+.import-checklist label { display: flex; align-items: center; gap: 7px; font-size: 12.5px; color: var(--ink-soft); background: var(--surface-2); border: 1px solid var(--line); border-radius: 999px; padding: 7px 13px 7px 10px; cursor: pointer; }
+.import-checklist input { width: 14px; height: 14px; accent-color: var(--brand-deep); }
+.import-checklist .is-empty { font-size: 12.5px; color: var(--ink-faint); }
 #import-preview-wrap { overflow-x: auto; margin-bottom: 22px; }
 #import-preview-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
 #import-preview-table th { text-align: left; padding: 10px 14px; color: var(--ink-faint); font-weight: 600; white-space: nowrap; border-bottom: 1px solid var(--line); }
