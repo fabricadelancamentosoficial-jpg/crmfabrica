@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}Pipeline{% endblock %}
+{% block content %}
+<header class="pipeline-header">
+  <div><h1>Pipeline</h1><p>{{ total_leads }} lead{{ 's' if total_leads != 1 else '' }} · {{ total_ativo | brl }} em negociação</p></div>
+  <div class="header-actions">
+    <div class="search">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" id="pipeline-search" placeholder="Buscar lead...">
+    </div>
+    <button class="btn-primary" id="btn-novo-lead" type="button">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Novo lead
+    </button>
+  </div>
+</header>
+
+<div class="board" id="board">
+  {% for col in columns %}
+  <div class="column" style="--accent:var(--st-{{ ETAPA_SLUG[col.etapa] }})">
+    <div class="col-head">
+      <div class="col-head-top"><span class="col-name">{{ col.etapa }}</span><span class="col-count">{{ col.leads|length }}</span></div>
+      <div class="col-rule"></div>
+      <span class="col-value">{{ col.total | brl }} {% if col.etapa == 'Fechado (Ganho)' %}fechados{% elif col.etapa == 'Fechado (Perdido)' %}perdidos{% else %}em aberto{% endif %}</span>
+    </div>
+    <div class="column-drop" data-etapa="{{ col.etapa }}">
+      {% for lead in col.leads %}
+      <div class="lead-card {{ 'is-stale' if lead.stale else '' }}" draggable="true" data-id="{{ lead.id }}" data-etapa="{{ lead.etapa }}" data-nome="{{ lead.nome|lower }}" data-lead='{{ lead|tojson }}'>
+        <div class="card-top">
+          <span class="lead-name">{{ lead.nome }}</span>
+          <span class="grip"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="8" cy="6" r="1.6"/><circle cx="16" cy="6" r="1.6"/><circle cx="8" cy="12" r="1.6"/><circle cx="16" cy="12" r="1.6"/><circle cx="8" cy="18" r="1.6"/><circle cx="16" cy="18" r="1.6"/></svg></span>
+        </div>
+        <span class="tag">{{ lead.area or '—' }}</span>
+        <span class="ticket">{{ lead.ticket | brl }}</span>
+        {% if lead.etapa == 'Fechado (Perdido)' and lead.motivo_perda %}<span class="loss-reason">Motivo: {{ lead.motivo_perda }}</span>{% endif %}
+        {% if lead.stale %}
+        <span class="stale-badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 7v5l3 3"/></svg>
+          Parado há {{ lead.dias_parado }} dias
+        </span>
+        {% endif %}
+        <div class="card-footer">
+          <span class="card-date {{ 'late' if lead.state == 'late' else '' }}">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/></svg>
+            {{ lead.label }}
+          </span>
+          <div class="avatar sm">{{ lead.responsavel[:2].upper() if lead.responsavel else '—' }}</div>
+        </div>
+      </div>
+      {% endfor %}
+      {% if col.leads|length == 0 %}<div class="column-empty">Arraste um lead até aqui</div>{% endif %}
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}
+
+{% block modals %}
+{% include "_lead_modal.html" %}
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/lead-modal.js') }}"></script>
+<script src="{{ url_for('static', filename='js/pipeline.js') }}"></script>
+{% endblock %}

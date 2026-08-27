@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+{% block title %}Painel{% endblock %}
+{% block content %}
+<header class="topbar">
+  <div class="greeting">
+    <h1>Boa tarde, {{ user }}</h1>
+    <p>Aqui está o panorama comercial da Fábrica hoje.</p>
+  </div>
+  <div class="topbar-right">
+    <button class="ghost" id="btn-send-digest" type="button">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;vertical-align:-2px;margin-right:6px;"><path d="M4 4h16v16H4z"/><path d="m4 6 8 7 8-7"/></svg>
+      Enviar resumo por e-mail
+    </button>
+  </div>
+</header>
+
+<section class="stat-strip">
+  <div class="stat-seg">
+    <div class="stat-value">{{ leads_ativos }}</div>
+    <div class="stat-label">Leads ativos</div>
+    <div class="stat-meta">Em atendimento</div>
+  </div>
+  <div class="stat-seg">
+    <div class="stat-value">{{ (valor_pipeline / 1000) | round | int }}<small>mil</small></div>
+    <div class="stat-label">Valor em pipeline</div>
+    <div class="stat-meta">{{ valor_pipeline | brl }}</div>
+  </div>
+  <div class="stat-seg">
+    <div class="halo"></div>
+    <div class="stat-value">{{ taxa_conversao }}<small>%</small></div>
+    <div class="stat-label">Taxa de conversão</div>
+    <div class="stat-meta">Ganho / fechados</div>
+  </div>
+  <div class="stat-seg {{ 'warn' if atrasados_count > 0 else '' }}">
+    <div class="halo"></div>
+    <div class="stat-value">{{ atrasados_count }}</div>
+    <div class="stat-label">Follow-ups atrasados</div>
+    <div class="stat-meta {{ 'warn' if atrasados_count > 0 else '' }}">{{ 'Precisam de atenção' if atrasados_count > 0 else 'Tudo em dia' }}</div>
+  </div>
+</section>
+
+<section class="main-grid">
+  <div class="card">
+    <div class="card-head">
+      <div><h3 class="card-title">Distribuição do funil</h3><p class="card-sub">Leads ativos por etapa, atualizado agora.</p></div>
+    </div>
+    {% if leads_ativos == 0 %}
+      <p class="empty-hint">Nenhum lead ativo ainda. Adicione o primeiro pelo Pipeline ou Leads.</p>
+    {% else %}
+    <div class="funnel-list">
+      {% for f in funil_counts %}
+      <div class="funnel-row">
+        <span class="funnel-stage">{{ f.etapa }}</span>
+        <div class="funnel-track"><div class="funnel-fill" style="width:{{ f.pct }}%; background:var(--tone-{{ loop.index }});"></div></div>
+        <span class="funnel-count">{{ f.count }}</span>
+      </div>
+      {% endfor %}
+    </div>
+    <div class="funnel-stats">
+      <div class="funnel-stat"><span class="funnel-stat-label">Total ativo</span><span class="funnel-stat-value">{{ leads_ativos }}</span></div>
+      <div class="funnel-stat"><span class="funnel-stat-label">Ticket médio</span><span class="funnel-stat-value">{{ ticket_medio | brl }}</span></div>
+      <div class="funnel-stat"><span class="funnel-stat-label">Fechados/mês</span><span class="funnel-stat-value">{{ fechados_mes }}</span></div>
+    </div>
+    {% endif %}
+  </div>
+
+  <div class="card glow">
+    <div class="card-head">
+      <div><h3 class="card-title">Próximos follow-ups</h3><p class="card-sub">Ordenados por urgência.</p></div>
+    </div>
+    {% if proximos|length == 0 %}
+      <p class="empty-hint">Nenhum follow-up agendado.</p>
+    {% else %}
+    <div class="followup-list">
+      {% for l in proximos %}
+      <div class="followup-row">
+        <div class="followup-top"><span class="followup-name">{{ l.nome }}</span><span class="followup-stage">{{ l.etapa }}</span></div>
+        <div class="followup-when {{ l.state }}"><i class="dot"></i>{{ l.label }}</div>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+</section>
+
+<section class="team-strip">
+  {% for c in carga %}
+  <div class="team-seg">
+    <div class="avatar">{{ c.nome[:2].upper() }}</div>
+    <div class="team-meta">
+      <div class="team-name-line"><span class="team-name">{{ c.nome }}</span><span class="team-count">{{ c.count }} lead{{ 's' if c.count != 1 else '' }}</span></div>
+      <div class="team-track"><div class="team-fill" style="width:{{ c.pct }}%;"></div></div>
+    </div>
+  </div>
+  {% endfor %}
+</section>
+
+{% if ticket_medio_ganho > 0 or melhor_origem %}
+<section class="card">
+  <div class="card-head">
+    <div><h3 class="card-title">Desempenho comercial</h3><p class="card-sub">Baseado em todos os leads fechados até agora.</p></div>
+  </div>
+  <div class="funnel-stats" style="margin-top:0; padding-top:0; border-top:none;">
+    <div class="funnel-stat">
+      <span class="funnel-stat-label">Tempo médio até fechar</span>
+      <span class="funnel-stat-value">{{ tempo_medio_fechamento ~ ' dias' if tempo_medio_fechamento is not none else '—' }}</span>
+    </div>
+    <div class="funnel-stat">
+      <span class="funnel-stat-label">Ticket médio fechado</span>
+      <span class="funnel-stat-value">{{ ticket_medio_ganho | brl }}</span>
+    </div>
+    <div class="funnel-stat">
+      <span class="funnel-stat-label">Valor total fechado</span>
+      <span class="funnel-stat-value">{{ valor_total_ganho | brl }}</span>
+    </div>
+    <div class="funnel-stat">
+      <span class="funnel-stat-label">Melhor origem</span>
+      <span class="funnel-stat-value" style="font-size:16px;">
+        {% if melhor_origem %}{{ melhor_origem.nome }} <small style="font-family:'Inter'; font-weight:600; color:var(--ink-faint);">({{ melhor_origem.pct }}%)</small>{% else %}—{% endif %}
+      </span>
+    </div>
+  </div>
+</section>
+{% endif %}
+
+{% if parados|length > 0 %}
+<section class="card">
+  <div class="card-head">
+    <div><h3 class="card-title">Leads parados</h3><p class="card-sub">Sem mudança de etapa há {{ stale_days }}+ dias.</p></div>
+  </div>
+  <div class="followup-list">
+    {% for l in parados %}
+    <div class="followup-row">
+      <div class="followup-top"><span class="followup-name">{{ l.nome }}</span><span class="followup-stage">{{ l.etapa }}</span></div>
+      <div class="followup-when late"><i class="dot"></i>Parado há {{ l.dias }} dia{{ 's' if l.dias != 1 else '' }}</div>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/painel.js') }}"></script>
+{% endblock %}

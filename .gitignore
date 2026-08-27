@@ -1,0 +1,7 @@
+venv/
+__pycache__/
+*.pyc
+fabrica.db
+fabrica.db.backup-*
+.env
+.claude/

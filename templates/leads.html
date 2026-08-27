@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}Leads{% endblock %}
+{% block content %}
+<header class="leads-header">
+  <div><h1>Leads</h1><p>Todos os leads em atendimento comercial, do formulário ao contrato assinado.</p></div>
+  <button class="btn-primary" id="btn-novo-lead" type="button">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    Novo lead
+  </button>
+</header>
+
+<form class="toolbar" method="get" id="filter-form">
+  <div class="toolbar-left">
+    <div class="search">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" name="q" value="{{ q }}" placeholder="Buscar por nome ou área...">
+    </div>
+    <select name="etapa" class="chip-select" onchange="this.form.submit()">
+      <option value="">Etapa</option>
+      {% for e in etapas %}<option value="{{ e }}" {{ 'selected' if e == etapa_f else '' }}>{{ e }}</option>{% endfor %}
+    </select>
+    <select name="responsavel" class="chip-select" onchange="this.form.submit()">
+      <option value="">Responsável</option>
+      {% for r in responsaveis %}<option value="{{ r }}" {{ 'selected' if r == resp_f else '' }}>{{ r }}</option>{% endfor %}
+    </select>
+    <select name="origem" class="chip-select" onchange="this.form.submit()">
+      <option value="">Origem</option>
+      {% for o in origens %}<option value="{{ o }}" {{ 'selected' if o == origem_f else '' }}>{{ o }}</option>{% endfor %}
+    </select>
+  </div>
+  <span class="count-pill">{{ leads|length }} lead{{ 's' if leads|length != 1 else '' }}</span>
+</form>
+
+<div class="table-card">
+  <table>
+    <thead>
+      <tr>
+        <th><a class="th-inner" href="{{ sort_links['nome'] }}">Nome <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 9l4-4 4 4M8 15l4 4 4-4"/></svg></a></th>
+        <th>Área de atuação</th>
+        <th>Etapa</th>
+        <th>Responsável</th>
+        <th class="num"><a class="th-inner" style="justify-content:flex-end;" href="{{ sort_links['ticket'] }}">Ticket <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 9l4-4 4 4M8 15l4 4 4-4"/></svg></a></th>
+        <th>Último contato</th>
+        <th><a class="th-inner" href="{{ sort_links['proximo_follow_up'] }}">Próximo follow-up <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 9l4-4 4 4M8 15l4 4 4-4"/></svg></a></th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for l in leads %}
+      <tr class="lead-row" data-id="{{ l.id }}" data-lead='{{ l|tojson }}'>
+        <td><div class="lead-cell"><div class="avatar sm">{{ l.nome[:2].upper() }}</div><span class="lead-cell-name">{{ l.nome }}</span></div></td>
+        <td class="area-text">{{ l.area or '—' }}</td>
+        <td><span class="stage-dot" style="--dot:var(--st-{{ ETAPA_SLUG[l.etapa] }});"><i></i>{{ l.etapa }}</span></td>
+        <td><div class="owner-cell">{% if l.responsavel %}<div class="avatar sm">{{ l.responsavel[:2].upper() }}</div><span class="owner-name">{{ l.responsavel }}</span>{% else %}<span class="owner-name muted">—</span>{% endif %}</div></td>
+        <td class="num ticket-cell">{{ l.ticket | brl }}</td>
+        <td class="muted">{{ l.ultimo_contato | brdate }}</td>
+        <td class="{{ 'late-text' if l.state == 'late' else ('today-text' if l.state == 'today' else 'muted') }}">{{ l.label }}{% if l.state == 'late' %} · atrasado{% endif %}</td>
+        <td><div class="more-btn"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="12" cy="19" r="1.7"/></svg></div></td>
+      </tr>
+      {% endfor %}
+      {% if leads|length == 0 %}
+      <tr class="empty-row"><td colspan="8">Nenhum lead encontrado com esses filtros.</td></tr>
+      {% endif %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}
+
+{% block modals %}
+{% include "_lead_modal.html" %}
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/lead-modal.js') }}"></script>
+<script src="{{ url_for('static', filename='js/leads.js') }}"></script>
+{% endblock %}
