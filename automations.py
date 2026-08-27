@@ -198,3 +198,75 @@ def create_lead_from_webhook(payload):
     row = dict(db.execute("SELECT * FROM leads WHERE id = ?", (lead_id,)).fetchone())
     db.close()
     return row, None
+
+
+# ---------------------------------------------------------------- webhook (Calendly)
+def _to_local_iso(utc_iso):
+    """Converte um horário UTC (formato Calendly, ex: 2026-09-01T14:00:00.000000Z)
+    para horário de Brasília, no mesmo formato datetime-local usado no resto do app."""
+    try:
+        from zoneinfo import ZoneInfo
+        dt_utc = datetime.fromisoformat(utc_iso.replace("Z", "+00:00"))
+        dt_local = dt_utc.astimezone(ZoneInfo("America/Sao_Paulo"))
+        return dt_local.strftime("%Y-%m-%dT%H:%M")
+    except Exception:
+        return None
+
+
+def _extract_phone(payload):
+    if payload.get("text_reminder_number"):
+        return payload["text_reminder_number"]
+    for qa in payload.get("questions_and_answers", []) or []:
+        pergunta = (qa.get("question") or "").lower()
+        if "telefone" in pergunta or "whatsapp" in pergunta or "phone" in pergunta:
+            return qa.get("answer", "")
+    return ""
+
+
+def handle_calendly_event(body):
+    """Processa um evento do Calendly (invitee.created). Atualiza o lead existente
+    (casando por telefone) ou cria um novo já como 'Reunião agendada'."""
+    if body.get("event") != "invitee.created":
+        return {"ok": True, "ignored": True}
+
+    payload = body.get("payload", {})
+    nome = payload.get("name", "")
+    if not nome:
+        return {"ok": False, "reason": "Payload sem nome do convidado."}
+
+    telefone = _extract_phone(payload)
+    start_time = (payload.get("scheduled_event") or {}).get("start_time")
+    horario_local = _to_local_iso(start_time) if start_time else None
+
+    db = _db()
+    now = datetime.utcnow().isoformat()
+    existente = None
+    if telefone:
+        existente = db.execute("SELECT * FROM leads WHERE telefone = ?", (telefone,)).fetchone()
+
+    if existente:
+        lead_id = existente["id"]
+        db.execute(
+            "UPDATE leads SET etapa = ?, etapa_changed_at = ?, proximo_follow_up = ?, updated_at = ? WHERE id = ?",
+            ("Reunião agendada", now, horario_local, now, lead_id),
+        )
+        acao = "Reunião agendada via Calendly"
+    else:
+        lead_id = str(uuid.uuid4())
+        db.execute(
+            "INSERT INTO leads (id, nome, area, origem, telefone, ticket, responsavel, etapa, etapa_changed_at,"
+            " ultimo_contato, proximo_follow_up, notas, motivo_perda, created_at, updated_at)"
+            " VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+            (lead_id, nome, "", "Calendly", telefone, 0, "", "Reunião agendada", now,
+             None, horario_local, "", "", now, now),
+        )
+        acao = "Lead criado via agendamento no Calendly"
+
+    db.execute(
+        "INSERT INTO activity_log (id, lead_id, campo, valor_antigo, valor_novo, autor, created_at) VALUES (?,?,?,?,?,?,?)",
+        (str(uuid.uuid4()), lead_id, "agendamento", None, acao, "Calendly", now),
+    )
+    db.commit()
+    row = dict(db.execute("SELECT * FROM leads WHERE id = ?", (lead_id,)).fetchone())
+    db.close()
+    return {"ok": True, "lead": row}

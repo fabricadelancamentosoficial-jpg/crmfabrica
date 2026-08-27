@@ -117,6 +117,29 @@ dos fechados (Ganho), valor total já fechado, e qual origem converte melhor. Tu
 calculado a partir dos dados reais — sem número inventado, sem "87 indicadores" de
 vaidade, só o que ajuda a decidir alguma coisa.
 
+### 8. Calendly (agenda de verdade) — receptor pronto, falta conectar
+
+Já existe um endpoint que recebe agendamentos do Calendly e atualiza o lead sozinho
+(ou cria um novo, se não achar):
+
+```
+POST /api/webhook/calendly?token=SEU_FABRICA_WEBHOOK_SECRET
+```
+
+Quando alguém marca um horário no Calendly da cliente, isso aqui: acha o lead pelo
+telefone, muda a etapa pra "Reunião agendada", e já preenche o "Próximo follow-up" com
+o horário exato marcado (convertido pro horário de Brasília automaticamente).
+
+**O que falta pra ligar de verdade**: o Calendly só libera webhook em plano pago
+(Premium ou acima) — não tem como usar isso no plano grátis. Com o token de API dela
+(gerado no painel do Calendly), eu registro o webhook uma vez e fica funcionando sozinho
+depois disso.
+
+**Alternativa sem custo extra**: se ela já usa Google Agenda, dá pra integrar direto com
+a Google Calendar API (gratuita) em vez do Calendly — faz a mesma coisa (bloqueia
+horário, evita choque de agenda), só que sem mensalidade adicional. Vale perguntar pra
+ela qual ferramenta prefere antes de eu seguir.
+
 ## Deixar Cris e Amanda acessarem também
 
 Hoje o app roda só no seu computador (`localhost`). Para os três acessarem o mesmo

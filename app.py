@@ -553,6 +553,18 @@ def webhook_lead():
     return jsonify(lead), 201
 
 
+@app.route("/api/webhook/calendly", methods=["POST"])
+def webhook_calendly():
+    if WEBHOOK_SECRET:
+        token = request.args.get("token") or request.headers.get("X-Webhook-Token")
+        if token != WEBHOOK_SECRET:
+            return jsonify({"error": "Token inválido."}), 401
+    body = request.get_json(silent=True) or {}
+    result = automations.handle_calendly_event(body)
+    status = 200 if result.get("ok") else 400
+    return jsonify(result), status
+
+
 # ---------------------------------------------------------------- leads API
 @app.route("/api/leads", methods=["POST"])
 @login_required
