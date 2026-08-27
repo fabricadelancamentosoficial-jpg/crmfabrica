@@ -1,8 +1,10 @@
+import csv
 import os
 import sqlite3
 import uuid
 from datetime import datetime, date, timedelta
 from functools import wraps
+from io import StringIO
 
 from flask import Flask, g, render_template, request, session, redirect, url_for, jsonify, make_response
 
@@ -36,7 +38,7 @@ app = Flask(__name__)
 app.config["SECRET_KEY"] = os.environ.get("FABRICA_SECRET_KEY", "dev-secret-troque-em-producao")
 
 CRM_PASSWORD = os.environ.get("FABRICA_CRM_PASSWORD", "fabrica2026")
-RESPONSAVEIS = ["Arthur", "Cris", "Amanda"]
+RESPONSAVEIS_PADRAO = ["Arthur", "Cris", "Amanda"]
 ETAPAS = [
     "Lead novo",
     "Qualificação",
@@ -78,6 +80,28 @@ def close_db(exc=None):
         db.close()
 
 
+def get_responsaveis(db, apenas_ativos=True):
+    sql = "SELECT nome FROM responsaveis"
+    if apenas_ativos:
+        sql += " WHERE ativo = 1"
+    sql += " ORDER BY created_at"
+    return [r["nome"] for r in db.execute(sql).fetchall()]
+
+
+def seed_responsaveis(db):
+    """Cria os responsáveis padrão só se a tabela ainda estiver vazia (nunca sobrescreve edições)."""
+    total = db.execute("SELECT COUNT(*) FROM responsaveis").fetchone()[0]
+    if total > 0:
+        return
+    now = datetime.utcnow().isoformat()
+    for nome in RESPONSAVEIS_PADRAO:
+        db.execute(
+            "INSERT INTO responsaveis (id, nome, ativo, created_at) VALUES (?,?,1,?)",
+            (str(uuid.uuid4()), nome, now),
+        )
+    db.commit()
+
+
 def init_db():
     is_new = not os.path.exists(DB_PATH)
     db = sqlite3.connect(DB_PATH)
@@ -85,6 +109,7 @@ def init_db():
         db.executescript(f.read())
     db.commit()
     migrate_db(db)
+    seed_responsaveis(db)
     if is_new:
         seed_db(db)
     db.close()
@@ -288,18 +313,19 @@ def login_required(view):
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
+    responsaveis = get_responsaveis(get_db())
     if request.method == "POST":
         nome = request.form.get("nome", "")
         senha = request.form.get("senha", "")
-        if nome not in RESPONSAVEIS:
-            return render_template("login.html", erro="Escolha quem é você.", responsaveis=RESPONSAVEIS, nome=nome, theme=get_theme()), 400
+        if nome not in responsaveis:
+            return render_template("login.html", erro="Escolha quem é você.", responsaveis=responsaveis, nome=nome, theme=get_theme()), 400
         if senha != CRM_PASSWORD:
-            return render_template("login.html", erro="Senha incorreta.", responsaveis=RESPONSAVEIS, nome=nome, theme=get_theme()), 401
+            return render_template("login.html", erro="Senha incorreta.", responsaveis=responsaveis, nome=nome, theme=get_theme()), 401
         session["user"] = nome
         return redirect(url_for("painel"))
     if session.get("user"):
         return redirect(url_for("painel"))
-    return render_template("login.html", erro=None, responsaveis=RESPONSAVEIS, nome=None, theme=get_theme())
+    return render_template("login.html", erro=None, responsaveis=responsaveis, nome=None, theme=get_theme())
 
 
 @app.route("/logout", methods=["POST"])
@@ -355,7 +381,7 @@ def painel():
         l.update(relative_label(l["proximo_follow_up"], today))
 
     carga = []
-    for resp in RESPONSAVEIS:
+    for resp in get_responsaveis(db):
         count = sum(1 for l in ativos if l["responsavel"] == resp)
         carga.append({"nome": resp, "count": count})
     max_carga = max((c["count"] for c in carga), default=1) or 1
@@ -456,18 +482,15 @@ def pipeline():
         theme=get_theme(),
         columns=columns,
         etapas=ETAPAS,
-        responsaveis=RESPONSAVEIS,
+        responsaveis=get_responsaveis(db),
         total_leads=len(leads),
         total_ativo=total_ativo,
         today=date.today().isoformat(),
     )
 
 
-# ---------------------------------------------------------------- leads
-@app.route("/leads")
-@login_required
-def leads_view():
-    db = get_db()
+def filtrar_leads(db):
+    """Aplica os filtros/ordenação da tela de Leads (usado na listagem e na exportação)."""
     q = request.args.get("q", "").strip()
     etapa_f = request.args.get("etapa", "")
     resp_f = request.args.get("responsavel", "")
@@ -497,6 +520,15 @@ def leads_view():
     sql += f" ORDER BY {sort} {direction}"
 
     leads = [row_to_dict(r) for r in db.execute(sql, params).fetchall()]
+    return leads, q, etapa_f, resp_f, origem_f, sort, direction
+
+
+# ---------------------------------------------------------------- leads
+@app.route("/leads")
+@login_required
+def leads_view():
+    db = get_db()
+    leads, q, etapa_f, resp_f, origem_f, sort, direction = filtrar_leads(db)
     today_str = date.today().isoformat()
     for l in leads:
         l.update(relative_label(l["proximo_follow_up"], today_str))
@@ -514,13 +546,85 @@ def leads_view():
         theme=get_theme(),
         leads=leads,
         etapas=ETAPAS,
-        responsaveis=RESPONSAVEIS,
+        responsaveis=get_responsaveis(db),
         origens=origens,
         q=q, etapa_f=etapa_f, resp_f=resp_f, origem_f=origem_f,
         sort=sort, direction=direction.lower(),
         sort_links=sort_links,
         today=date.today().isoformat(),
     )
+
+
+@app.route("/leads/exportar.csv")
+@login_required
+def exportar_leads_csv():
+    """Exporta os leads (respeitando os filtros atuais da tela) num CSV que abre certinho no Excel."""
+    db = get_db()
+    leads, *_ = filtrar_leads(db)
+
+    output = StringIO()
+    writer = csv.writer(output, delimiter=";")
+    writer.writerow([
+        "Nome", "Área de atuação", "Origem", "Telefone", "Ticket proposto", "Responsável",
+        "Etapa", "Último contato", "Próximo follow-up", "Notas", "Motivo da perda", "Criado em",
+    ])
+    for l in leads:
+        writer.writerow([
+            l["nome"], l["area"], l["origem"], l["telefone"], l["ticket"], l["responsavel"], l["etapa"],
+            (l["ultimo_contato"] or "")[:10],
+            (l["proximo_follow_up"] or "")[:16].replace("T", " "),
+            l["notas"], l["motivo_perda"], (l["created_at"] or "")[:10],
+        ])
+
+    resp = make_response("\ufeff" + output.getvalue())
+    resp.headers["Content-Type"] = "text/csv; charset=utf-8"
+    resp.headers["Content-Disposition"] = f"attachment; filename=leads-fabrica-{date.today().isoformat()}.csv"
+    return resp
+
+
+# ---------------------------------------------------------------- equipe (responsáveis)
+@app.route("/equipe")
+@login_required
+def equipe():
+    db = get_db()
+    membros = [dict(r) for r in db.execute(
+        "SELECT * FROM responsaveis ORDER BY ativo DESC, created_at"
+    ).fetchall()]
+    return render_template("equipe.html", user=session["user"], theme=get_theme(), membros=membros)
+
+
+@app.route("/api/responsaveis", methods=["POST"])
+@login_required
+def api_criar_responsavel():
+    data = request.get_json(force=True, silent=True) or {}
+    nome = (data.get("nome") or "").strip()
+    if not nome:
+        return jsonify({"ok": False, "erro": "Digite um nome."}), 400
+
+    db = get_db()
+    existente = db.execute("SELECT id FROM responsaveis WHERE nome = ?", (nome,)).fetchone()
+    if existente:
+        db.execute("UPDATE responsaveis SET ativo = 1 WHERE id = ?", (existente["id"],))
+        db.commit()
+        return jsonify({"ok": True})
+
+    db.execute(
+        "INSERT INTO responsaveis (id, nome, ativo, created_at) VALUES (?,?,1,?)",
+        (str(uuid.uuid4()), nome, datetime.utcnow().isoformat()),
+    )
+    db.commit()
+    return jsonify({"ok": True})
+
+
+@app.route("/api/responsaveis/<rid>", methods=["PATCH"])
+@login_required
+def api_atualizar_responsavel(rid):
+    data = request.get_json(force=True, silent=True) or {}
+    db = get_db()
+    if "ativo" in data:
+        db.execute("UPDATE responsaveis SET ativo = ? WHERE id = ?", (1 if data["ativo"] else 0, rid))
+        db.commit()
+    return jsonify({"ok": True})
 
 
 # ---------------------------------------------------------------- theme
@@ -676,7 +780,7 @@ def delete_lead(lead_id):
 
 @app.context_processor
 def inject_globals():
-    return {"ETAPAS": ETAPAS, "RESPONSAVEIS": RESPONSAVEIS, "ETAPA_SLUG": ETAPA_SLUG}
+    return {"ETAPAS": ETAPAS, "RESPONSAVEIS": get_responsaveis(get_db()), "ETAPA_SLUG": ETAPA_SLUG}
 
 
 init_db()

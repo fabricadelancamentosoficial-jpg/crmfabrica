@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Equipe{% endblock %}
+{% block content %}
+<header class="leads-header">
+  <div><h1>Equipe</h1><p>Quem pode entrar no CRM e aparecer como responsável pelos leads.</p></div>
+  <form class="equipe-form" id="form-equipe">
+    <input type="text" id="equipe-nome" placeholder="Nome da pessoa" maxlength="60" required>
+    <button class="btn-primary" type="submit">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Adicionar
+    </button>
+  </form>
+</header>
+
+<div class="table-card" id="equipe-lista">
+  {% for m in membros %}
+  <div class="equipe-row" data-id="{{ m.id }}">
+    <div class="equipe-who">
+      <div class="avatar sm">{{ m.nome[:2].upper() }}</div>
+      <span class="equipe-name">{{ m.nome }}</span>
+      <span class="status-pill {{ 'on' if m.ativo else 'off' }}">{{ 'Ativo' if m.ativo else 'Inativo' }}</span>
+    </div>
+    <button type="button" class="ghost btn-toggle-membro" data-ativo="{{ m.ativo }}">
+      {{ 'Desativar' if m.ativo else 'Ativar' }}
+    </button>
+  </div>
+  {% endfor %}
+  {% if membros|length == 0 %}
+  <div class="equipe-row"><span class="owner-name muted">Ninguém cadastrado ainda.</span></div>
+  {% endif %}
+</div>
+<p class="count-pill" style="margin-top:14px;">Quem estiver "Inativo" não aparece mais no login nem nas listas de responsável — mas os leads já atribuídos a essa pessoa continuam com o histórico intacto.</p>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/equipe.js') }}"></script>
+{% endblock %}

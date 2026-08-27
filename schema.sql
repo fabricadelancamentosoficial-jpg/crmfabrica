@@ -28,3 +28,10 @@ CREATE TABLE IF NOT EXISTS activity_log (
 );
 
 CREATE INDEX IF NOT EXISTS idx_activity_lead ON activity_log(lead_id);
+
+CREATE TABLE IF NOT EXISTS responsaveis (
+  id TEXT PRIMARY KEY,
+  nome TEXT NOT NULL UNIQUE,
+  ativo INTEGER NOT NULL DEFAULT 1,
+  created_at TEXT NOT NULL
+);

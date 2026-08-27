@@ -3,10 +3,16 @@
 {% block content %}
 <header class="leads-header">
   <div><h1>Leads</h1><p>Todos os leads em atendimento comercial, do formulário ao contrato assinado.</p></div>
-  <button class="btn-primary" id="btn-novo-lead" type="button">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-    Novo lead
-  </button>
+  <div class="leads-header-actions">
+    <a class="ghost btn-icon" id="btn-exportar" href="{{ url_for('exportar_leads_csv', q=q, etapa=etapa_f, responsavel=resp_f, origem=origem_f) }}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M4 21h16"/></svg>
+      Exportar
+    </a>
+    <button class="btn-primary" id="btn-novo-lead" type="button">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Novo lead
+    </button>
+  </div>
 </header>
 
 <form class="toolbar" method="get" id="filter-form">
