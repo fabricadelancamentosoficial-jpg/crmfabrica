@@ -80,6 +80,17 @@ def close_db(exc=None):
         db.close()
 
 
+MESES_PT = {
+    1: "Janeiro", 2: "Fevereiro", 3: "Março", 4: "Abril", 5: "Maio", 6: "Junho",
+    7: "Julho", 8: "Agosto", 9: "Setembro", 10: "Outubro", 11: "Novembro", 12: "Dezembro",
+}
+
+
+def get_meta_mes(db, mes):
+    row = db.execute("SELECT valor_meta FROM metas_mensais WHERE mes = ?", (mes,)).fetchone()
+    return row["valor_meta"] if row else 0
+
+
 def get_responsaveis(db, apenas_ativos=True):
     sql = "SELECT nome FROM responsaveis"
     if apenas_ativos:
@@ -371,7 +382,14 @@ def painel():
         f["pct"] = round((f["count"] / max_count) * 100) if max_count else 0
 
     ticket_medio = round(valor_pipeline / len(ativos)) if ativos else 0
-    fechados_mes = len(ganhos)
+
+    mes_atual = today[:7]
+    ganhos_mes = [l for l in ganhos if (l["etapa_changed_at"] or "").startswith(mes_atual)]
+    fechados_mes = len(ganhos_mes)
+    valor_faturado_mes = sum(l["ticket"] for l in ganhos_mes)
+    meta_mes = get_meta_mes(db, mes_atual)
+    pct_meta = round((valor_faturado_mes / meta_mes) * 100) if meta_mes else 0
+    mes_label = MESES_PT[int(mes_atual[5:7])]
 
     proximos = sorted(
         [l for l in ativos if l["proximo_follow_up"]],
@@ -444,6 +462,10 @@ def painel():
         funil_counts=funil_counts,
         ticket_medio=ticket_medio,
         fechados_mes=fechados_mes,
+        valor_faturado_mes=valor_faturado_mes,
+        meta_mes=meta_mes,
+        pct_meta=pct_meta,
+        mes_label=mes_label,
         proximos=proximos,
         carga=carga,
         parados=parados,
@@ -625,6 +647,30 @@ def api_atualizar_responsavel(rid):
         db.execute("UPDATE responsaveis SET ativo = ? WHERE id = ?", (1 if data["ativo"] else 0, rid))
         db.commit()
     return jsonify({"ok": True})
+
+
+# ---------------------------------------------------------------- meta mensal
+@app.route("/api/meta", methods=["POST"])
+@login_required
+def api_salvar_meta():
+    data = request.get_json(force=True, silent=True) or {}
+    try:
+        valor = int(float(data.get("valor")))
+    except (TypeError, ValueError):
+        return jsonify({"ok": False, "erro": "Valor inválido."}), 400
+    if valor < 0:
+        return jsonify({"ok": False, "erro": "Valor inválido."}), 400
+
+    mes = date.today().isoformat()[:7]
+    db = get_db()
+    now = datetime.utcnow().isoformat()
+    db.execute(
+        "INSERT INTO metas_mensais (mes, valor_meta, updated_at) VALUES (?,?,?)"
+        " ON CONFLICT(mes) DO UPDATE SET valor_meta = excluded.valor_meta, updated_at = excluded.updated_at",
+        (mes, valor, now),
+    )
+    db.commit()
+    return jsonify({"ok": True, "meta": valor})
 
 
 # ---------------------------------------------------------------- importação em massa

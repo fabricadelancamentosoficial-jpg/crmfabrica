@@ -35,3 +35,9 @@ CREATE TABLE IF NOT EXISTS responsaveis (
   ativo INTEGER NOT NULL DEFAULT 1,
   created_at TEXT NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS metas_mensais (
+  mes TEXT PRIMARY KEY,
+  valor_meta INTEGER NOT NULL,
+  updated_at TEXT NOT NULL
+);
