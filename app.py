@@ -93,12 +93,16 @@ def init_db():
 def migrate_db(db):
     """Adiciona colunas novas a bancos já existentes, sem apagar nada."""
     cols = {row[1] for row in db.execute("PRAGMA table_info(leads)").fetchall()}
-    if "telefone" not in cols:
-        db.execute("ALTER TABLE leads ADD COLUMN telefone TEXT DEFAULT ''")
-    if "etapa_changed_at" not in cols:
-        db.execute("ALTER TABLE leads ADD COLUMN etapa_changed_at TEXT")
-        db.execute("UPDATE leads SET etapa_changed_at = created_at WHERE etapa_changed_at IS NULL")
-    db.commit()
+    try:
+        if "telefone" not in cols:
+            db.execute("ALTER TABLE leads ADD COLUMN telefone TEXT DEFAULT ''")
+        if "etapa_changed_at" not in cols:
+            db.execute("ALTER TABLE leads ADD COLUMN etapa_changed_at TEXT")
+            db.execute("UPDATE leads SET etapa_changed_at = created_at WHERE etapa_changed_at IS NULL")
+        db.commit()
+    except sqlite3.OperationalError:
+        # outro worker do gunicorn já aplicou essa migração ao mesmo tempo
+        db.rollback()
 
 
 def seed_db(db):
@@ -675,6 +679,7 @@ def inject_globals():
     return {"ETAPAS": ETAPAS, "RESPONSAVEIS": RESPONSAVEIS, "ETAPA_SLUG": ETAPA_SLUG}
 
 
+init_db()
+
 if __name__ == "__main__":
-    init_db()
     app.run(debug=True, port=5050)
