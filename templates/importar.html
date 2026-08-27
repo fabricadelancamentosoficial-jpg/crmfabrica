@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}Importar leads{% endblock %}
+{% block content %}
+<header class="leads-header">
+  <div>
+    <h1>Importar leads</h1>
+    <p>Suba o CSV baixado da sua planilha (Google Sheets, Meta Ads etc.) e crie vários leads de uma vez.</p>
+  </div>
+</header>
+
+<div class="card" id="import-step-upload">
+  <h2 class="card-title">1. Escolha o arquivo</h2>
+  <p class="import-help">No Google Sheets: <strong>Arquivo → Fazer download → Valores separados por vírgula (.csv)</strong>. Depois solte o arquivo aqui ou clique para escolher.</p>
+  <label class="import-dropzone" id="import-dropzone" for="import-file">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M17 8l-5-5-5 5"/><path d="M12 3v12"/></svg>
+    <span id="import-dropzone-label">Clique ou arraste o arquivo .csv aqui</span>
+  </label>
+  <input type="file" id="import-file" accept=".csv,text/csv" hidden>
+</div>
+
+<div class="card" id="import-step-mapping" style="display:none;">
+  <h2 class="card-title">2. Confira as colunas</h2>
+  <p class="count-pill" id="import-summary"></p>
+
+  <div class="import-mapping" id="import-mapping-fields"></div>
+
+  <div class="import-defaults">
+    <div class="import-defaults-field">
+      <label for="import-origem-padrao">Origem padrão (quando a planilha não tiver essa coluna)</label>
+      <input type="text" id="import-origem-padrao" value="Meta Ads">
+    </div>
+    <div class="import-defaults-field">
+      <label for="import-responsavel-padrao">Responsável padrão</label>
+      <select id="import-responsavel-padrao">
+        <option value="">— nenhum —</option>
+        {% for r in responsaveis %}<option value="{{ r }}">{{ r }}</option>{% endfor %}
+      </select>
+    </div>
+  </div>
+
+  <label class="import-checkbox">
+    <input type="checkbox" id="import-pular-duplicados" checked>
+    Pular quem já existe no CRM (mesmo telefone)
+  </label>
+
+  <div class="table-card" id="import-preview-wrap">
+    <table id="import-preview-table"><thead></thead><tbody></tbody></table>
+  </div>
+
+  <div class="import-actions">
+    <button class="ghost" type="button" id="btn-import-cancelar">Escolher outro arquivo</button>
+    <button class="btn-primary" type="button" id="btn-import-confirmar">Importar leads</button>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/importar.js') }}"></script>
+{% endblock %}

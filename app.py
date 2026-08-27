@@ -627,6 +627,77 @@ def api_atualizar_responsavel(rid):
     return jsonify({"ok": True})
 
 
+# ---------------------------------------------------------------- importação em massa
+@app.route("/leads/importar")
+@login_required
+def importar_leads_page():
+    db = get_db()
+    return render_template(
+        "importar.html", user=session["user"], theme=get_theme(), responsaveis=get_responsaveis(db)
+    )
+
+
+@app.route("/api/leads/importar", methods=["POST"])
+@login_required
+def api_importar_leads():
+    data = request.get_json(force=True, silent=True) or {}
+    linhas = data.get("leads") or []
+    pular_duplicados = data.get("pular_duplicados", True)
+
+    db = get_db()
+    autor = session.get("user", "Sistema")
+    now = datetime.utcnow().isoformat()
+
+    criados = 0
+    duplicados = 0
+    sem_nome = 0
+
+    for linha in linhas:
+        nome = (linha.get("nome") or "").strip()
+        if not nome:
+            sem_nome += 1
+            continue
+
+        telefone = (linha.get("telefone") or "").strip()
+        if pular_duplicados and telefone:
+            existente = db.execute("SELECT id FROM leads WHERE telefone = ?", (telefone,)).fetchone()
+            if existente:
+                duplicados += 1
+                continue
+
+        try:
+            ticket = int(float(str(linha.get("ticket") or 0).replace(",", ".")))
+        except ValueError:
+            ticket = 0
+
+        lead_id = str(uuid.uuid4())
+        db.execute(
+            "INSERT INTO leads (id, nome, area, origem, telefone, ticket, responsavel, etapa, etapa_changed_at,"
+            " ultimo_contato, proximo_follow_up, notas, motivo_perda, created_at, updated_at)"
+            " VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+            (
+                lead_id,
+                nome,
+                (linha.get("area") or "").strip(),
+                (linha.get("origem") or "").strip(),
+                telefone,
+                ticket,
+                (linha.get("responsavel") or "").strip(),
+                "Lead novo",
+                now,
+                None, None,
+                (linha.get("notas") or "").strip(),
+                "",
+                now, now,
+            ),
+        )
+        log_activity(db, lead_id, "criação", None, "Lead criado via importação de planilha", autor, commit=False)
+        criados += 1
+
+    db.commit()
+    return jsonify({"ok": True, "criados": criados, "duplicados": duplicados, "sem_nome": sem_nome})
+
+
 # ---------------------------------------------------------------- theme
 @app.route("/api/theme", methods=["POST"])
 def set_theme():

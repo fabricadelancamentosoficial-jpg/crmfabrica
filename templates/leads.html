@@ -4,6 +4,10 @@
 <header class="leads-header">
   <div><h1>Leads</h1><p>Todos os leads em atendimento comercial, do formulário ao contrato assinado.</p></div>
   <div class="leads-header-actions">
+    <a class="ghost btn-icon" href="{{ url_for('importar_leads_page') }}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21V9"/><path d="M7 14l5-5 5 5"/><path d="M4 21h16"/></svg>
+      Importar
+    </a>
     <a class="ghost btn-icon" id="btn-exportar" href="{{ url_for('exportar_leads_csv', q=q, etapa=etapa_f, responsavel=resp_f, origem=origem_f) }}">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M4 21h16"/></svg>
       Exportar

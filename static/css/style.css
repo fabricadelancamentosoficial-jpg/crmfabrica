@@ -353,6 +353,31 @@ tbody tr.lead-row:hover { background: var(--surface-2); }
 .status-pill.off { color: var(--ink-faint); background: var(--surface-2); }
 .status-pill.off::before { background: var(--ink-faint); }
 
+/* ---------- importar leads ---------- */
+.import-help { font-size: 13px; color: var(--ink-soft); margin: 4px 0 18px; line-height: 1.5; }
+.import-dropzone {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px;
+  padding: 44px 20px; border: 1.5px dashed var(--line); border-radius: 16px; background: var(--surface-2);
+  cursor: pointer; text-align: center; transition: border-color .15s, background .15s;
+}
+.import-dropzone:hover, .import-dropzone.is-dragover { border-color: var(--accent); background: color-mix(in oklch, var(--accent) 8%, var(--surface-2)); }
+.import-dropzone svg { width: 26px; height: 26px; color: var(--ink-faint); }
+.import-dropzone span { font-size: 13.5px; font-weight: 600; color: var(--ink-soft); }
+.import-mapping { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; margin: 18px 0; }
+.import-mapping-field label { display: block; font-size: 11.5px; font-weight: 600; color: var(--ink-faint); text-transform: uppercase; letter-spacing: .04em; margin-bottom: 6px; }
+.import-mapping-field select { width: 100%; padding: 10px 12px; border-radius: 10px; background: var(--surface-2); border: 1px solid var(--line); color: var(--ink); font-size: 13px; font-family: 'Inter'; }
+.import-defaults { display: flex; gap: 20px; flex-wrap: wrap; margin: 4px 0 18px; padding-top: 18px; border-top: 1px solid var(--line); }
+.import-defaults-field { flex: 1; min-width: 200px; }
+.import-defaults-field label { display: block; font-size: 11.5px; font-weight: 600; color: var(--ink-faint); text-transform: uppercase; letter-spacing: .04em; margin-bottom: 6px; }
+.import-defaults-field input, .import-defaults-field select { width: 100%; padding: 10px 12px; border-radius: 10px; background: var(--surface-2); border: 1px solid var(--line); color: var(--ink); font-size: 13px; font-family: 'Inter'; }
+.import-checkbox { display: flex; align-items: center; gap: 9px; font-size: 13px; color: var(--ink-soft); margin-bottom: 20px; cursor: pointer; }
+.import-checkbox input { width: 16px; height: 16px; accent-color: var(--brand-deep); }
+#import-preview-wrap { overflow-x: auto; margin-bottom: 22px; }
+#import-preview-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+#import-preview-table th { text-align: left; padding: 10px 14px; color: var(--ink-faint); font-weight: 600; white-space: nowrap; border-bottom: 1px solid var(--line); }
+#import-preview-table td { padding: 9px 14px; color: var(--ink-soft); white-space: nowrap; border-bottom: 1px solid var(--line); }
+.import-actions { display: flex; justify-content: flex-end; gap: 10px; }
+
 /* ---------- toast ---------- */
 .toast {
   position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%) translateY(20px);
