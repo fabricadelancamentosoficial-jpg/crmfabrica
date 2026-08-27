@@ -10,7 +10,7 @@
   var CAMPOS = [
     { chave: "nome", label: "Nome", obrigatorio: true, aliases: ["nome", "name", "nome completo", "full name", "fullname", "nome do lead", "lead name"] },
     { chave: "telefone", label: "Telefone / WhatsApp", obrigatorio: false, aliases: ["telefone", "phone", "celular", "whatsapp", "phone number", "numero", "número", "tel"] },
-    { chave: "area", label: "Área de atuação", obrigatorio: false, aliases: ["area", "área", "area de atuacao", "área de atuação", "especialidade", "profissao", "profissão", "categoria"] },
+    { chave: "area", label: "Área de atuação", obrigatorio: false, aliases: ["area", "área", "atuacao", "atuação", "area de atuacao", "área de atuação", "especialidade", "profissao", "profissão", "categoria"] },
     { chave: "origem", label: "Origem", obrigatorio: false, aliases: ["origem", "source", "campanha", "campaign name", "campaign_name", "ad name", "ad_name", "anuncio", "anúncio"] },
     { chave: "ticket", label: "Ticket proposto", obrigatorio: false, aliases: ["ticket", "valor", "budget", "orcamento", "orçamento"] },
     { chave: "responsavel", label: "Responsável", obrigatorio: false, aliases: ["responsavel", "responsável", "owner", "dono"] },
@@ -156,9 +156,6 @@
     reader.readAsText(file, "UTF-8");
   }
 
-  dropzone.addEventListener("click", function (e) {
-    if (e.target !== fileInput) fileInput.click();
-  });
   fileInput.addEventListener("change", function () {
     if (fileInput.files[0]) processarArquivo(fileInput.files[0]);
   });
