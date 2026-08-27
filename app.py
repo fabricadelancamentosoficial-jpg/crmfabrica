@@ -849,6 +849,21 @@ def delete_lead(lead_id):
     return jsonify({"ok": True})
 
 
+@app.route("/api/leads/excluir-em-massa", methods=["POST"])
+@login_required
+def delete_leads_em_massa():
+    data = request.get_json(force=True, silent=True) or {}
+    ids = [i for i in (data.get("ids") or []) if i]
+    if not ids:
+        return jsonify({"ok": False, "erro": "Nenhum lead selecionado."}), 400
+
+    db = get_db()
+    placeholders = ",".join("?" * len(ids))
+    db.execute(f"DELETE FROM leads WHERE id IN ({placeholders})", ids)
+    db.commit()
+    return jsonify({"ok": True, "excluidos": len(ids)})
+
+
 @app.context_processor
 def inject_globals():
     return {"ETAPAS": ETAPAS, "RESPONSAVEIS": get_responsaveis(get_db()), "ETAPA_SLUG": ETAPA_SLUG}

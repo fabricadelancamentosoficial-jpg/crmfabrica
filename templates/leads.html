@@ -41,10 +41,17 @@
   <span class="count-pill">{{ leads|length }} lead{{ 's' if leads|length != 1 else '' }}</span>
 </form>
 
+<div class="bulk-bar" id="bulk-bar">
+  <span id="bulk-count">0 selecionados</span>
+  <button class="danger-outline" type="button" id="btn-bulk-excluir">Excluir selecionados</button>
+  <button class="ghost" type="button" id="btn-bulk-cancelar">Cancelar</button>
+</div>
+
 <div class="table-card">
   <table>
     <thead>
       <tr>
+        <th class="check-col"><input type="checkbox" id="check-all" title="Selecionar todos"></th>
         <th><a class="th-inner" href="{{ sort_links['nome'] }}">Nome <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 9l4-4 4 4M8 15l4 4 4-4"/></svg></a></th>
         <th>Área de atuação</th>
         <th>Etapa</th>
@@ -58,6 +65,7 @@
     <tbody>
       {% for l in leads %}
       <tr class="lead-row" data-id="{{ l.id }}" data-lead='{{ l|tojson }}'>
+        <td class="check-col"><input type="checkbox" class="lead-check" data-id="{{ l.id }}"></td>
         <td><div class="lead-cell"><div class="avatar sm">{{ l.nome[:2].upper() }}</div><span class="lead-cell-name">{{ l.nome }}</span></div></td>
         <td class="area-text">{{ l.area or '—' }}</td>
         <td><span class="stage-dot" style="--dot:var(--st-{{ ETAPA_SLUG[l.etapa] }});"><i></i>{{ l.etapa }}</span></td>
@@ -69,7 +77,7 @@
       </tr>
       {% endfor %}
       {% if leads|length == 0 %}
-      <tr class="empty-row"><td colspan="8">Nenhum lead encontrado com esses filtros.</td></tr>
+      <tr class="empty-row"><td colspan="9">Nenhum lead encontrado com esses filtros.</td></tr>
       {% endif %}
     </tbody>
   </table>

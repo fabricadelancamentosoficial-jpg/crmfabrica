@@ -233,6 +233,7 @@
       }
 
       var origemPadrao = document.getElementById("import-origem-padrao").value.trim();
+      var ticketPadrao = document.getElementById("import-ticket-padrao").value.trim();
       var responsavelPadrao = document.getElementById("import-responsavel-padrao").value;
       var pularDuplicados = document.getElementById("import-pular-duplicados").checked;
 
@@ -256,7 +257,7 @@
           telefone: valor("telefone"),
           area: valor("area"),
           origem: valor("origem") || origemPadrao,
-          ticket: valor("ticket"),
+          ticket: valor("ticket") || ticketPadrao,
           responsavel: valor("responsavel") || responsavelPadrao,
           notas: notas,
         };
