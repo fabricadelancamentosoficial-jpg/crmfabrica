@@ -1,5 +1,17 @@
 (function () {
   "use strict";
+
+  var btnWhatsapp = document.getElementById("btn-abrir-whatsapp");
+  var editor = document.getElementById("mensagem-editor");
+  if (btnWhatsapp && editor) {
+    btnWhatsapp.addEventListener("click", function () {
+      var digits = (btnWhatsapp.getAttribute("data-telefone") || "").replace(/\D/g, "");
+      if (!digits) return;
+      var texto = encodeURIComponent(editor.value);
+      window.open("https://wa.me/" + digits + "?text=" + texto, "_blank", "noopener");
+    });
+  }
+
   var btn = document.getElementById("btn-auto-qualificar");
   if (!btn) return;
 

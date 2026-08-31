@@ -10,6 +10,7 @@
     </button>
   </div>
 </header>
+<p class="section-sub" style="margin-top:-14px;">Esse botão só reorganiza o pipeline por prioridade (ticket) — não envia mensagem pra ninguém. Enviar continua sendo manual, lead por lead, aqui embaixo.</p>
 
 <div class="atendimento-stat">
   <span class="atendimento-stat-value">{{ fila|length }}</span>
@@ -46,13 +47,13 @@
       </div>
 
       <div class="atendimento-suggestion">
-        <span class="atendimento-suggestion-label">Mensagem sugerida de boas-vindas</span>
-        <p class="atendimento-suggestion-text">{{ mensagem_sugerida }}</p>
+        <span class="atendimento-suggestion-label">Mensagem sugerida de boas-vindas <small>(pode editar antes de enviar)</small></span>
+        <textarea class="atendimento-suggestion-text" id="mensagem-editor" rows="4">{{ mensagem_sugerida }}</textarea>
         {% if selecionado.telefone %}
-        <a class="btn-primary" href="{{ selecionado.telefone | walink_msg(mensagem_sugerida) }}" target="_blank" rel="noopener">
+        <button class="btn-primary" type="button" id="btn-abrir-whatsapp" data-telefone="{{ selecionado.telefone }}">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
           Abrir no WhatsApp com essa mensagem
-        </a>
+        </button>
         {% else %}
         <span class="atendimento-suggestion-nofone">Esse lead não tem telefone cadastrado.</span>
         {% endif %}
