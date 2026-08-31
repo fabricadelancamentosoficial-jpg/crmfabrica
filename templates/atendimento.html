@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block title %}Atendimento{% endblock %}
+{% block content %}
+<header class="leads-header">
+  <div><h1>Atendimento</h1><p>Fila de leads novos aguardando o primeiro contato.</p></div>
+  <div class="leads-header-actions">
+    <button class="btn-primary" id="btn-auto-qualificar" type="button">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h7l-1 8 10-12h-7z"/></svg>
+      Iniciar automação de qualificação
+    </button>
+  </div>
+</header>
+
+<div class="atendimento-stat">
+  <span class="atendimento-stat-value">{{ fila|length }}</span>
+  <span class="atendimento-stat-label">lead{{ 's' if fila|length != 1 else '' }} novo{{ 's' if fila|length != 1 else '' }} aguardando na fila</span>
+</div>
+
+<div class="atendimento-layout">
+  <div class="atendimento-fila">
+    {% for l in fila %}
+    <a class="atendimento-item {{ 'active' if selecionado and selecionado.id == l.id else '' }}" href="{{ url_for('atendimento', lead=l.id) }}">
+      <div class="avatar sm">{{ l.nome[:2].upper() }}</div>
+      <div class="atendimento-item-meta">
+        <span class="atendimento-item-name">{{ l.nome }}</span>
+        <span class="atendimento-item-sub">{{ l.area or 'Área não informada' }} · há {{ l.dias_na_fila }} dia{{ 's' if l.dias_na_fila != 1 else '' }}</span>
+      </div>
+      {% if l.origem %}<span class="tag">{{ l.origem }}</span>{% endif %}
+    </a>
+    {% endfor %}
+    {% if fila|length == 0 %}
+    <div class="atendimento-empty">Nenhum lead novo na fila 🎉</div>
+    {% endif %}
+  </div>
+
+  <div class="atendimento-detail">
+    {% if selecionado %}
+    <div class="card">
+      <div class="atendimento-detail-head">
+        <div class="avatar">{{ selecionado.nome[:2].upper() }}</div>
+        <div class="atendimento-detail-who">
+          <h3 class="card-title">{{ selecionado.nome }}</h3>
+          <p class="card-sub">{{ selecionado.area or 'Área não informada' }} · {{ selecionado.origem or 'Origem não informada' }}</p>
+        </div>
+        <span class="stage-dot" style="--dot:var(--st-{{ ETAPA_SLUG[selecionado.etapa] }});"><i></i>{{ selecionado.etapa }}</span>
+      </div>
+
+      <div class="atendimento-suggestion">
+        <span class="atendimento-suggestion-label">Mensagem sugerida de boas-vindas</span>
+        <p class="atendimento-suggestion-text">{{ mensagem_sugerida }}</p>
+        {% if selecionado.telefone %}
+        <a class="btn-primary" href="{{ selecionado.telefone | walink_msg(mensagem_sugerida) }}" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          Abrir no WhatsApp com essa mensagem
+        </a>
+        {% else %}
+        <span class="atendimento-suggestion-nofone">Esse lead não tem telefone cadastrado.</span>
+        {% endif %}
+      </div>
+
+      <span class="atendimento-suggestion-label" style="display:block; margin:22px 0 10px;">Histórico</span>
+      <div class="history-list">
+        {% for h in historico %}
+        <div class="history-item">
+          <div class="history-txt">{{ h.campo }}: {{ h.valor_antigo or '—' }} → {{ h.valor_novo }}</div>
+          <div class="history-meta">{{ h.autor }} · {{ h.created_at[:16].replace('T', ' ') }}</div>
+        </div>
+        {% endfor %}
+        {% if historico|length == 0 %}
+        <div class="history-empty">Sem histórico ainda.</div>
+        {% endif %}
+      </div>
+    </div>
+    {% else %}
+    <div class="card"><p class="empty-hint">Selecione um lead na fila ao lado.</p></div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/atendimento.js') }}"></script>
+{% endblock %}

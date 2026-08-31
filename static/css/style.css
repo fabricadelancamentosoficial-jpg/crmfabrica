@@ -416,6 +416,41 @@ tbody tr.lead-row:hover { background: var(--surface-2); }
 #import-preview-table td { padding: 9px 14px; color: var(--ink-soft); white-space: nowrap; border-bottom: 1px solid var(--line); }
 .import-actions { display: flex; justify-content: flex-end; gap: 10px; }
 
+/* ---------- atendimento ---------- */
+.atendimento-stat { display: flex; align-items: baseline; gap: 10px; margin-bottom: 4px; }
+.atendimento-stat-value { font-family: 'Sora'; font-weight: 800; font-size: 30px; letter-spacing: -.02em; color: var(--ink); font-variant-numeric: tabular-nums; }
+.atendimento-stat-label { font-size: 13px; color: var(--ink-soft); }
+
+.atendimento-layout { display: flex; gap: 18px; align-items: flex-start; }
+.atendimento-fila {
+  width: 300px; flex-shrink: 0; display: flex; flex-direction: column; gap: 8px;
+  background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 10px;
+  box-shadow: 0 1px 2px rgba(20,40,55,.03), 0 20px 40px -32px rgba(20,40,55,.14);
+  max-height: 620px; overflow-y: auto;
+}
+.atendimento-item {
+  display: flex; align-items: center; gap: 10px; padding: 12px; border-radius: 12px;
+  text-decoration: none; color: inherit; border: 1px solid transparent;
+}
+.atendimento-item:hover { background: var(--surface-2); }
+.atendimento-item.active { background: var(--surface-2); border-color: var(--line-strong); }
+.atendimento-item-meta { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
+.atendimento-item-name { font-size: 13px; font-weight: 600; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.atendimento-item-sub { font-size: 11.5px; color: var(--ink-faint); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.atendimento-empty { padding: 30px 14px; text-align: center; font-size: 13px; color: var(--ink-faint); }
+
+.atendimento-detail { flex: 1; min-width: 0; }
+.atendimento-detail-head { display: flex; align-items: flex-start; gap: 14px; margin-bottom: 20px; }
+.atendimento-detail-who { flex: 1; }
+
+.atendimento-suggestion {
+  background: var(--surface-2); border: 1px solid var(--line); border-radius: 16px; padding: 18px 20px;
+}
+.atendimento-suggestion-label { display: block; font-size: 11.5px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: var(--ink-faint); margin-bottom: 8px; }
+.atendimento-suggestion-text { font-size: 13.5px; color: var(--ink); line-height: 1.6; margin: 0 0 16px; }
+.atendimento-suggestion-nofone { font-size: 12.5px; color: var(--ink-faint); }
+.atendimento-suggestion .btn-primary svg { width: 15px; height: 15px; }
+
 /* ---------- seleção em massa (Leads) ---------- */
 .check-col { width: 34px; }
 .check-col input, .lead-check { width: 16px; height: 16px; accent-color: var(--brand-deep); cursor: pointer; }

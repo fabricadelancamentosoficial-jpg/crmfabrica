@@ -5,6 +5,7 @@ import uuid
 from datetime import datetime, date, timedelta
 from functools import wraps
 from io import StringIO
+from urllib.parse import quote
 
 from flask import Flask, g, render_template, request, session, redirect, url_for, jsonify, make_response
 
@@ -312,6 +313,33 @@ def walink_filter(telefone):
     return f"https://wa.me/{digits}" if digits else ""
 
 
+@app.template_filter("walink_msg")
+def walink_msg_filter(telefone, texto=""):
+    digits = "".join(ch for ch in (telefone or "") if ch.isdigit())
+    if not digits:
+        return ""
+    if texto:
+        return f"https://wa.me/{digits}?text={quote(texto)}"
+    return f"https://wa.me/{digits}"
+
+
+TITULOS_IGNORAR = {"dr.", "dr", "dra.", "dra", "sr.", "sr", "sra.", "sra"}
+
+
+def sugerir_mensagem_boas_vindas(lead):
+    """Mensagem de boas-vindas personalizada pro primeiro contato — o atendente confere e envia."""
+    partes = (lead.get("nome") or "").split(" ")
+    partes = [p for p in partes if p.lower() not in TITULOS_IGNORAR]
+    primeiro_nome = partes[0] if partes else ""
+    area = lead.get("area") or "a sua área"
+    saudacao = f"Oi, {primeiro_nome}! " if primeiro_nome else "Oi! "
+    return (
+        f"{saudacao}Vi que você se aplicou pra estruturar um projeto em {area}. "
+        "Recebemos seu contato e em breve alguém do nosso time fala com você por aqui pra entender melhor "
+        "o seu momento. Qualquer coisa, é só chamar 🙂"
+    )
+
+
 # ---------------------------------------------------------------- auth
 def login_required(view):
     @wraps(view)
@@ -476,6 +504,73 @@ def painel():
         melhor_origem=melhor_origem,
         today=today,
     )
+
+
+# ---------------------------------------------------------------- atendimento
+@app.route("/atendimento")
+@login_required
+def atendimento():
+    db = get_db()
+    fila = [row_to_dict(r) for r in db.execute(
+        "SELECT * FROM leads WHERE etapa = 'Lead novo' ORDER BY created_at DESC"
+    ).fetchall()]
+    today_str = date.today().isoformat()
+    for l in fila:
+        l["dias_na_fila"] = dias_parado(l["created_at"], today_str)
+
+    lead_id = request.args.get("lead") or (fila[0]["id"] if fila else None)
+    selecionado = None
+    mensagem_sugerida = None
+    historico = []
+    if lead_id:
+        row = db.execute("SELECT * FROM leads WHERE id = ?", (lead_id,)).fetchone()
+        if row:
+            selecionado = row_to_dict(row)
+            mensagem_sugerida = sugerir_mensagem_boas_vindas(selecionado)
+            historico = [row_to_dict(r) for r in db.execute(
+                "SELECT * FROM activity_log WHERE lead_id = ? ORDER BY created_at DESC", (lead_id,)
+            ).fetchall()]
+
+    return render_template(
+        "atendimento.html",
+        user=session["user"],
+        theme=get_theme(),
+        fila=fila,
+        selecionado=selecionado,
+        mensagem_sugerida=mensagem_sugerida,
+        historico=historico,
+    )
+
+
+@app.route("/api/atendimento/qualificar-automatico", methods=["POST"])
+@login_required
+def qualificar_automatico():
+    db = get_db()
+    ativos = [row_to_dict(r) for r in db.execute(
+        "SELECT * FROM leads WHERE etapa NOT IN ('Fechado (Ganho)', 'Fechado (Perdido)')"
+    ).fetchall()]
+    ticket_medio = round(sum(l["ticket"] for l in ativos) / len(ativos)) if ativos else 0
+    novos = [l for l in ativos if l["etapa"] == "Lead novo"]
+
+    autor = session.get("user", "Sistema")
+    now = datetime.utcnow().isoformat()
+    qualificados = 0
+    for l in novos:
+        if ticket_medio and l["ticket"] >= ticket_medio:
+            db.execute(
+                "UPDATE leads SET etapa = 'Qualificação', etapa_changed_at = ?, updated_at = ? WHERE id = ?",
+                (now, now, l["id"]),
+            )
+            log_activity(db, l["id"], "Etapa", "Lead novo", "Qualificação",
+                         f"{autor} (automação)", commit=False)
+            qualificados += 1
+    db.commit()
+    return jsonify({
+        "ok": True,
+        "qualificados": qualificados,
+        "total_fila": len(novos),
+        "ticket_medio": ticket_medio,
+    })
 
 
 # ---------------------------------------------------------------- pipeline
