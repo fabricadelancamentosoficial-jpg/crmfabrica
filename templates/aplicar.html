@@ -6,13 +6,14 @@
 <title>Fábrica · Aplicação</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Sora:wght@400;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
   --bg-1:#0a1620; --bg-2:#0d1e29; --bg-3:#102532;
   --surface: rgba(19,42,53,.55); --line: rgba(140,190,210,.16); --line-strong: rgba(140,190,210,.28);
   --ink:#eaf4f8; --ink-soft:#9db9c2; --ink-faint:#5f818b;
   --accent:#5fb6e0; --accent-soft:#bfe6f4; --glow: rgba(95,182,224,.30);
+  --warm:#c9a876; --warm-deep:#9c7c4d; --warm-glow: rgba(201,168,118,.28);
 }
 *{box-sizing:border-box;}
 html{ background: var(--bg-2); }
@@ -44,8 +45,9 @@ body::before{
   margin-bottom: 20px;
 }
 .eyebrow{ font-size:12px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color: var(--accent-soft); }
-h1{ font-family:'Sora'; font-weight:700; font-size: 34px; line-height:1.18; letter-spacing:-.01em; margin: 14px 0 16px; text-wrap: balance; }
-h1 em{ font-style: normal; color: var(--accent-soft); }
+h1{ font-family:'Instrument Serif', serif; font-weight:400; font-size: 42px; line-height:1.2; letter-spacing:-.005em; margin: 16px 0 18px; text-wrap: balance; }
+h1 em{ font-style: italic;
+  background: linear-gradient(135deg, var(--warm), #e8cfa0); -webkit-background-clip:text; background-clip:text; color:transparent; }
 .sub{ font-size:15px; line-height:1.65; color: var(--ink-soft); margin:0; max-width: 52ch; }
 
 .card h2{ font-family:'Sora'; font-weight:700; font-size:19px; margin:0 0 8px; color:var(--ink); }
@@ -66,10 +68,10 @@ h1 em{ font-style: normal; color: var(--accent-soft); }
 .field input:focus, .field select:focus, .field textarea:focus{ outline:none; border-color: var(--accent); }
 
 .submit{
-  width:100%; padding: 16px; border:none; border-radius: 14px; margin-top:6px;
-  background: linear-gradient(135deg, var(--accent), #3a8fb0); color:#06161d;
+  width:100%; padding: 17px; border:none; border-radius: 999px; margin-top:6px;
+  background: linear-gradient(135deg, var(--warm), var(--warm-deep)); color:#1c1608;
   font-family:'Sora'; font-weight:700; font-size:15px; cursor:pointer;
-  box-shadow: 0 14px 28px -12px var(--glow);
+  box-shadow: 0 14px 28px -12px var(--warm-glow);
 }
 .submit:disabled{ opacity:.6; cursor:default; }
 
@@ -77,7 +79,7 @@ h1 em{ font-style: normal; color: var(--accent-soft); }
 
 @media (max-width: 560px){
   .grid{ grid-template-columns: 1fr; }
-  h1{ font-size: 27px; }
+  h1{ font-size: 32px; }
   .card{ padding: 28px 22px; }
 }
 </style>
