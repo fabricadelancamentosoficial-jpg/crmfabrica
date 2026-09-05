@@ -78,7 +78,7 @@ p{ font-size:14.5px; color: var(--ink-soft); line-height:1.6; margin: 0 0 30px; 
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
     </div>
     <h1>Aplicação recebida, {{ primeiro_nome }}!</h1>
-    <p>{% if vsl_url %}Assista o vídeo abaixo antes de continuar — é rápido e vai te poupar tempo na conversa.{% else %}Recebemos seus dados. Quer que a gente já fale com você agora, ou prefere que a nossa equipe entre em contato mais tarde?{% endif %}</p>
+    <p>{% if vsl_url %}Assista o vídeo abaixo antes de continuar.{% else %}Recebemos seus dados. Quer que a gente já fale com você agora, ou prefere que a nossa equipe entre em contato mais tarde?{% endif %}</p>
 
     {% if vsl_url %}
     <div class="vsl-section">
