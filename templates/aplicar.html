@@ -13,7 +13,7 @@
   --surface: rgba(19,42,53,.55); --line: rgba(140,190,210,.16); --line-strong: rgba(140,190,210,.28);
   --ink:#eaf4f8; --ink-soft:#9db9c2; --ink-faint:#5f818b;
   --accent:#5fb6e0; --accent-soft:#bfe6f4; --glow: rgba(95,182,224,.30);
-  --warm:#c9a876; --warm-deep:#9c7c4d; --warm-glow: rgba(201,168,118,.28);
+  --warm:#aab4bc; --warm-deep:#7c8891; --warm-glow: rgba(170,180,188,.22);
 }
 *{box-sizing:border-box;}
 html{ background: var(--bg-2); }
@@ -66,10 +66,12 @@ h1 em{ font-style: italic;
 .field select{ appearance:none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%235fb6e0' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position: right 14px center; }
 .field input::placeholder, .field textarea::placeholder{ color: var(--ink-faint); }
 .field input:focus, .field select:focus, .field textarea:focus{ outline:none; border-color: var(--accent); }
+.field input.invalido{ border-color: #e2748a; }
+.field-erro{ display:block; font-size:12px; color:#e2748a; margin-top:6px; }
 
 .submit{
   width:100%; padding: 17px; border:none; border-radius: 999px; margin-top:6px;
-  background: linear-gradient(135deg, var(--warm), var(--warm-deep)); color:#1c1608;
+  background: linear-gradient(135deg, var(--warm), var(--warm-deep)); color:#0d151b;
   font-family:'Sora'; font-weight:700; font-size:15px; cursor:pointer;
   box-shadow: 0 14px 28px -12px var(--warm-glow);
 }
@@ -106,7 +108,11 @@ h1 em{ font-style: italic;
         <div class="field"><label>Área de atuação</label><input type="text" name="area" required placeholder="Ex: Odontologia, Advocacia..."></div>
       </div>
       <div class="grid">
-        <div class="field"><label>WhatsApp</label><input type="text" name="telefone" required placeholder="(00) 00000-0000"></div>
+        <div class="field">
+          <label>WhatsApp</label>
+          <input type="text" name="telefone" id="telefone" required placeholder="(48) 99999-8888" inputmode="tel">
+          <span class="field-erro" id="telefone-erro" style="display:none;">Digite um WhatsApp válido, com DDD.</span>
+        </div>
         <div class="field"><label>Instagram</label><input type="text" name="instagram" placeholder="@seuinstagram"></div>
       </div>
 
@@ -138,10 +144,40 @@ h1 em{ font-style: italic;
   <p class="footer">FÁBRICA · ASSESSORIA EXECUTORA</p>
 </div>
 <script>
-  document.getElementById('apply-form').addEventListener('submit', function () {
+  function normalizarTelefone(valor) {
+    var digitos = valor.replace(/\D/g, '');
+    if (digitos.length === 10 || digitos.length === 11) digitos = '55' + digitos;
+    return digitos;
+  }
+  function telefoneValido(digitos) {
+    return digitos.length === 12 || digitos.length === 13;
+  }
+
+  document.getElementById('apply-form').addEventListener('submit', function (e) {
+    var telefoneInput = document.getElementById('telefone');
+    var telefoneErro = document.getElementById('telefone-erro');
+    var digitos = normalizarTelefone(telefoneInput.value);
+
+    if (!telefoneValido(digitos)) {
+      e.preventDefault();
+      telefoneInput.classList.add('invalido');
+      telefoneErro.style.display = 'block';
+      telefoneInput.focus();
+      return;
+    }
+
+    telefoneInput.classList.remove('invalido');
+    telefoneErro.style.display = 'none';
+    telefoneInput.value = digitos;
+
     var btn = document.getElementById('submit-btn');
     btn.disabled = true;
     btn.textContent = 'Enviando...';
+  });
+
+  document.getElementById('telefone').addEventListener('input', function () {
+    this.classList.remove('invalido');
+    document.getElementById('telefone-erro').style.display = 'none';
   });
 </script>
 </body>

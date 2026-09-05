@@ -1042,6 +1042,16 @@ def aplicar():
                 faturamento_opcoes=FATURAMENTO_OPCOES, motivacao_opcoes=MOTIVACAO_OPCOES,
             ), 400
 
+        digitos = "".join(ch for ch in telefone if ch.isdigit())
+        if len(digitos) in (10, 11):
+            digitos = "55" + digitos
+        if len(digitos) not in (12, 13):
+            return render_template(
+                "aplicar.html", erro="Digite um WhatsApp válido, com DDD.",
+                faturamento_opcoes=FATURAMENTO_OPCOES, motivacao_opcoes=MOTIVACAO_OPCOES,
+            ), 400
+        telefone = digitos
+
         partes_notas = []
         if instagram:
             partes_notas.append(f"Instagram: {instagram}")
