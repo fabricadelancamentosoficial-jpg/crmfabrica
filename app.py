@@ -1008,6 +1008,7 @@ def delete_leads_em_massa():
 # ---------------------------------------------------------------- página pública de aplicação
 FABRICA_WHATSAPP_NUMERO = os.environ.get("FABRICA_WHATSAPP_NUMERO", "")
 FABRICA_VSL_URL = os.environ.get("FABRICA_VSL_URL", "")
+FABRICA_CALENDLY_URL = os.environ.get("FABRICA_CALENDLY_URL", "")
 
 FATURAMENTO_OPCOES = [
     "Até R$50 Mil",
@@ -1084,7 +1085,7 @@ def aplicar_obrigado(lead_id):
     )
     return render_template(
         "aplicar_obrigado.html", lead=lead, primeiro_nome=primeiro_nome,
-        whatsapp_link=whatsapp_link, vsl_url=FABRICA_VSL_URL,
+        whatsapp_link=whatsapp_link, vsl_url=FABRICA_VSL_URL, calendly_url=FABRICA_CALENDLY_URL,
     )
 
 
