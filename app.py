@@ -1007,6 +1007,7 @@ def delete_leads_em_massa():
 
 # ---------------------------------------------------------------- página pública de aplicação
 FABRICA_WHATSAPP_NUMERO = os.environ.get("FABRICA_WHATSAPP_NUMERO", "")
+FABRICA_VSL_URL = os.environ.get("FABRICA_VSL_URL", "")
 
 FATURAMENTO_OPCOES = [
     "Até R$50 Mil",
@@ -1082,7 +1083,8 @@ def aplicar_obrigado(lead_id):
         if FABRICA_WHATSAPP_NUMERO else ""
     )
     return render_template(
-        "aplicar_obrigado.html", lead=lead, primeiro_nome=primeiro_nome, whatsapp_link=whatsapp_link,
+        "aplicar_obrigado.html", lead=lead, primeiro_nome=primeiro_nome,
+        whatsapp_link=whatsapp_link, vsl_url=FABRICA_VSL_URL,
     )
 
 
@@ -1090,10 +1092,12 @@ def aplicar_obrigado(lead_id):
 def registrar_preferencia_contato(lead_id):
     data = request.get_json(force=True, silent=True) or {}
     preferencia = data.get("preferencia")
+    horario = (data.get("horario") or "").strip()
     if preferencia not in ("Quer falar agora", "Prefere mais tarde"):
         return jsonify({"ok": False}), 400
+    valor = f"{preferencia} — {horario}" if horario else preferencia
     db = get_db()
-    log_activity(db, lead_id, "Preferência de contato", None, preferencia, "Formulário de aplicação")
+    log_activity(db, lead_id, "Preferência de contato", None, valor, "Formulário de aplicação")
     return jsonify({"ok": True})
 
 
