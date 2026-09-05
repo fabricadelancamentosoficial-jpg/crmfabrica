@@ -64,10 +64,10 @@ p{ font-size:14.5px; color: var(--ink-soft); line-height:1.6; margin: 0 0 30px; 
 }
 .horario-picker select:focus, .horario-picker input:focus{ outline:none; border-color: var(--accent); }
 
-.vsl-section{ margin-top: 34px; padding-top: 30px; border-top:1px solid var(--line); }
-.vsl-eyebrow{ font-size:12px; font-weight:600; letter-spacing:.06em; text-transform:uppercase; color: var(--accent-soft); display:block; margin-bottom:14px; }
-.vsl-frame{ position:relative; width:100%; padding-top:56.25%; border-radius:16px; overflow:hidden; background:#000; margin-bottom:20px; }
+.vsl-section{ margin: 4px 0 20px; }
+.vsl-frame{ position:relative; width:100%; padding-top:56.25%; border-radius:16px; overflow:hidden; background:#000; }
 .vsl-frame iframe{ position:absolute; inset:0; width:100%; height:100%; border:0; }
+.vsl-followup{ font-size:13px; color: var(--ink-faint); margin: 0 0 18px; }
 </style>
 </head>
 <body>
@@ -78,7 +78,14 @@ p{ font-size:14.5px; color: var(--ink-soft); line-height:1.6; margin: 0 0 30px; 
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
     </div>
     <h1>Aplicação recebida, {{ primeiro_nome }}!</h1>
-    <p>Recebemos seus dados. Quer que a gente já fale com você agora, ou prefere que a nossa equipe entre em contato mais tarde?</p>
+    <p>{% if vsl_url %}Assista o vídeo abaixo antes de continuar — é rápido e vai te poupar tempo na conversa.{% else %}Recebemos seus dados. Quer que a gente já fale com você agora, ou prefere que a nossa equipe entre em contato mais tarde?{% endif %}</p>
+
+    {% if vsl_url %}
+    <div class="vsl-section">
+      <div class="vsl-frame"><iframe src="{{ vsl_url }}" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe></div>
+    </div>
+    <p class="vsl-followup">Depois de assistir, escolhe abaixo como prefere seguir:</p>
+    {% endif %}
 
     <div class="actions" id="actions">
       {% if whatsapp_link %}
@@ -104,19 +111,6 @@ p{ font-size:14.5px; color: var(--ink-soft); line-height:1.6; margin: 0 0 30px; 
     </div>
 
     <div class="confirm-msg" id="confirm-msg">Combinado — nossa equipe entra em contato no horário combinado 🙂</div>
-
-    {% if vsl_url %}
-    <div class="vsl-section">
-      <span class="vsl-eyebrow">— Antes de conversarmos, assista</span>
-      <div class="vsl-frame"><iframe src="{{ vsl_url }}" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe></div>
-      {% if whatsapp_link %}
-      <a href="{{ whatsapp_link }}" target="_blank" rel="noopener" class="btn btn-primary" id="btn-agora-vsl">
-        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12.04 2.003c-5.53 0-10.02 4.49-10.02 10.02 0 1.77.46 3.5 1.34 5.02L2 22l5.11-1.34a9.98 9.98 0 0 0 4.93 1.31h.01c5.53 0 10.02-4.49 10.02-10.02 0-2.68-1.04-5.19-2.93-7.08a9.96 9.96 0 0 0-7.1-2.9z"/></svg>
-        Falar com a gente agora
-      </a>
-      {% endif %}
-    </div>
-    {% endif %}
   </div>
 </div>
 <script>
@@ -131,8 +125,6 @@ p{ font-size:14.5px; color: var(--ink-soft); line-height:1.6; margin: 0 0 30px; 
 
   var btnAgora = document.getElementById("btn-agora");
   if (btnAgora) btnAgora.addEventListener("click", function () { registrar("Quer falar agora"); });
-  var btnAgoraVsl = document.getElementById("btn-agora-vsl");
-  if (btnAgoraVsl) btnAgoraVsl.addEventListener("click", function () { registrar("Quer falar agora"); });
 
   var btnDepois = document.getElementById("btn-depois");
   var picker = document.getElementById("horario-picker");
