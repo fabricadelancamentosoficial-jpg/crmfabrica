@@ -1005,6 +1005,98 @@ def delete_leads_em_massa():
     return jsonify({"ok": True, "excluidos": len(ids)})
 
 
+# ---------------------------------------------------------------- página pública de aplicação
+FABRICA_WHATSAPP_NUMERO = os.environ.get("FABRICA_WHATSAPP_NUMERO", "")
+
+FATURAMENTO_OPCOES = [
+    "Até R$50 Mil",
+    "Entre R$50 Mil e R$100 Mil",
+    "Entre R$100 Mil e R$200 Mil",
+    "Entre R$200 Mil e R$300 Mil",
+    "Mais de R$300 Mil por mês",
+]
+MOTIVACAO_OPCOES = [
+    "Quero transformar meu conhecimento em uma mentoria premium",
+    "Já vendo mentoria/consultoria e quero escalar",
+    "Quero criar uma nova fonte de receita além dos atendimentos",
+    "Hoje meu foco é apenas atrair mais pacientes",
+]
+
+
+@app.route("/aplicar", methods=["GET", "POST"])
+def aplicar():
+    if request.method == "POST":
+        nome = request.form.get("nome", "").strip()
+        telefone = request.form.get("telefone", "").strip()
+        area = request.form.get("area", "").strip()
+        instagram = request.form.get("instagram", "").strip()
+        faturamento = request.form.get("faturamento", "")
+        motivacao = request.form.get("motivacao", "")
+        dor = request.form.get("dor", "").strip()
+
+        if not nome or not telefone:
+            return render_template(
+                "aplicar.html", erro="Preencha pelo menos nome e WhatsApp.",
+                faturamento_opcoes=FATURAMENTO_OPCOES, motivacao_opcoes=MOTIVACAO_OPCOES,
+            ), 400
+
+        partes_notas = []
+        if instagram:
+            partes_notas.append(f"Instagram: {instagram}")
+        if faturamento:
+            partes_notas.append(f"Faturamento: {faturamento}")
+        if motivacao:
+            partes_notas.append(f"Momento: {motivacao}")
+        if dor:
+            partes_notas.append(f"O que impede: {dor}")
+
+        lead, error = automations.create_lead_from_webhook({
+            "nome": nome, "telefone": telefone, "area": area,
+            "origem": "Formulário de aplicação", "notas": "\n".join(partes_notas),
+        })
+        if error:
+            return render_template(
+                "aplicar.html", erro=error,
+                faturamento_opcoes=FATURAMENTO_OPCOES, motivacao_opcoes=MOTIVACAO_OPCOES,
+            ), 400
+        return redirect(url_for("aplicar_obrigado", lead_id=lead["id"]))
+
+    return render_template(
+        "aplicar.html", erro=None,
+        faturamento_opcoes=FATURAMENTO_OPCOES, motivacao_opcoes=MOTIVACAO_OPCOES,
+    )
+
+
+@app.route("/aplicar/obrigado/<lead_id>")
+def aplicar_obrigado(lead_id):
+    db = get_db()
+    row = db.execute("SELECT * FROM leads WHERE id = ?", (lead_id,)).fetchone()
+    if not row:
+        return redirect(url_for("aplicar"))
+    lead = row_to_dict(row)
+    partes_nome = [p for p in (lead["nome"] or "").split(" ") if p.lower() not in TITULOS_IGNORAR]
+    primeiro_nome = partes_nome[0] if partes_nome else ""
+    mensagem = f"Oi! Sou {lead['nome']} e acabei de aplicar no formulário da Fábrica. Gostaria de falar agora, se possível 🙂"
+    whatsapp_link = (
+        f"https://wa.me/{FABRICA_WHATSAPP_NUMERO}?text={quote(mensagem)}"
+        if FABRICA_WHATSAPP_NUMERO else ""
+    )
+    return render_template(
+        "aplicar_obrigado.html", lead=lead, primeiro_nome=primeiro_nome, whatsapp_link=whatsapp_link,
+    )
+
+
+@app.route("/api/aplicar/<lead_id>/preferencia", methods=["POST"])
+def registrar_preferencia_contato(lead_id):
+    data = request.get_json(force=True, silent=True) or {}
+    preferencia = data.get("preferencia")
+    if preferencia not in ("Quer falar agora", "Prefere mais tarde"):
+        return jsonify({"ok": False}), 400
+    db = get_db()
+    log_activity(db, lead_id, "Preferência de contato", None, preferencia, "Formulário de aplicação")
+    return jsonify({"ok": True})
+
+
 @app.context_processor
 def inject_globals():
     return {"ETAPAS": ETAPAS, "RESPONSAVEIS": get_responsaveis(get_db()), "ETAPA_SLUG": ETAPA_SLUG}

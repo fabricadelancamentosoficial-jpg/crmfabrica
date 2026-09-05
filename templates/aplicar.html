@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fábrica · Aplicação</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg-1:#0a1620; --bg-2:#0d1e29; --bg-3:#102532;
+  --surface: rgba(19,42,53,.55); --line: rgba(140,190,210,.16); --line-strong: rgba(140,190,210,.28);
+  --ink:#eaf4f8; --ink-soft:#9db9c2; --ink-faint:#5f818b;
+  --accent:#5fb6e0; --accent-soft:#bfe6f4; --glow: rgba(95,182,224,.30);
+}
+*{box-sizing:border-box;}
+html{ background: var(--bg-2); }
+body{
+  margin:0; min-height:100vh; position:relative; font-family:'Inter',system-ui,sans-serif; color:var(--ink);
+  background-color: var(--bg-2);
+  background-image:
+    radial-gradient(900px 500px at 20% -10%, var(--glow), transparent 60%),
+    linear-gradient(165deg, var(--bg-1) 0%, var(--bg-2) 55%, var(--bg-3) 100%);
+  padding: 64px 20px 90px;
+}
+body::before{
+  content:''; position:absolute; inset:0; pointer-events:none; opacity:.35; z-index:0;
+  background-image:
+    repeating-linear-gradient(0deg, rgba(140,190,210,.05) 0 1px, transparent 1px 64px),
+    repeating-linear-gradient(90deg, rgba(140,190,210,.05) 0 1px, transparent 1px 64px);
+}
+.wrap{ max-width: 620px; margin: 0 auto; position: relative; z-index: 1; }
+
+.brand{ display:flex; justify-content:center; margin-bottom: 40px; }
+.brand-word{ font-family:'Sora'; font-weight:700; font-size:22px; letter-spacing:-.01em;
+  background: linear-gradient(135deg, #ffffff, var(--accent)); -webkit-background-clip:text; background-clip:text; color:transparent; }
+.brand-word sup{ font-size:11px; }
+
+.card{
+  background: var(--surface); border:1px solid var(--line); border-radius: 24px; padding: 38px 36px;
+  backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+  box-shadow: 0 1px 1px rgba(255,255,255,.04) inset, 0 30px 60px -30px rgba(0,0,0,.6);
+  margin-bottom: 20px;
+}
+.eyebrow{ font-size:12px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color: var(--accent-soft); }
+h1{ font-family:'Sora'; font-weight:700; font-size: 34px; line-height:1.18; letter-spacing:-.01em; margin: 14px 0 16px; text-wrap: balance; }
+h1 em{ font-style: normal; color: var(--accent-soft); }
+.sub{ font-size:15px; line-height:1.65; color: var(--ink-soft); margin:0; max-width: 52ch; }
+
+.card h2{ font-family:'Sora'; font-weight:700; font-size:19px; margin:0 0 8px; color:var(--ink); }
+.form-sub{ font-size:13.5px; color: var(--ink-soft); line-height:1.6; margin: 0 0 26px; }
+
+.erro{ background: rgba(226,116,138,.14); border:1px solid rgba(226,116,138,.4); color:#f3b9c4;
+  padding:12px 16px; border-radius:12px; font-size:13.5px; margin-bottom: 18px; }
+
+.grid{ display:grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.field{ margin-bottom: 18px; }
+.field label{ display:block; font-size:12px; font-weight:600; color: var(--ink-faint); text-transform:uppercase; letter-spacing:.04em; margin-bottom:7px; }
+.field input, .field select, .field textarea{
+  width:100%; padding: 13px 15px; border-radius: 12px; border:1px solid var(--line); background: rgba(10,22,32,.55);
+  color: var(--ink); font-family:'Inter'; font-size: 14px;
+}
+.field select{ appearance:none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%235fb6e0' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position: right 14px center; }
+.field input::placeholder, .field textarea::placeholder{ color: var(--ink-faint); }
+.field input:focus, .field select:focus, .field textarea:focus{ outline:none; border-color: var(--accent); }
+
+.submit{
+  width:100%; padding: 16px; border:none; border-radius: 14px; margin-top:6px;
+  background: linear-gradient(135deg, var(--accent), #3a8fb0); color:#06161d;
+  font-family:'Sora'; font-weight:700; font-size:15px; cursor:pointer;
+  box-shadow: 0 14px 28px -12px var(--glow);
+}
+.submit:disabled{ opacity:.6; cursor:default; }
+
+.footer{ text-align:center; font-size:11.5px; letter-spacing:.08em; color: var(--ink-faint); margin-top: 32px; }
+
+@media (max-width: 560px){
+  .grid{ grid-template-columns: 1fr; }
+  h1{ font-size: 27px; }
+  .card{ padding: 28px 22px; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="brand"><span class="brand-word">fábrica<sup>&reg;</sup></span></div>
+
+  <div class="card">
+    <span class="eyebrow">— Aplicação para estruturar seu próximo modelo</span>
+    <h1>Você chegou longe com esse modelo. <em>Agora existe o próximo.</em></h1>
+    <p class="sub">Para o médico, dentista, advogado ou especialista que já é referência no que faz e sente que chegou no teto do que dá pra crescer trocando tempo por atendimento.</p>
+  </div>
+
+  <div class="card">
+    <h2>Vagas limitadas por turma</h2>
+    <p class="form-sub">Se sua aplicação for selecionada, alguém da nossa equipe entra em contato pra entender seu momento e mostrar como estruturar sua mentoria, comunidade ou infoproduto do zero.</p>
+
+    {% if erro %}<div class="erro">{{ erro }}</div>{% endif %}
+
+    <form method="post" id="apply-form">
+      <div class="grid">
+        <div class="field"><label>Nome completo</label><input type="text" name="nome" required placeholder="Seu nome"></div>
+        <div class="field"><label>Área de atuação</label><input type="text" name="area" required placeholder="Ex: Odontologia, Advocacia..."></div>
+      </div>
+      <div class="grid">
+        <div class="field"><label>WhatsApp</label><input type="text" name="telefone" required placeholder="(00) 00000-0000"></div>
+        <div class="field"><label>Instagram</label><input type="text" name="instagram" placeholder="@seuinstagram"></div>
+      </div>
+
+      <div class="field">
+        <label>Faturamento mensal aproximado</label>
+        <select name="faturamento">
+          <option value="">Selecione</option>
+          {% for f in faturamento_opcoes %}<option value="{{ f }}">{{ f }}</option>{% endfor %}
+        </select>
+      </div>
+
+      <div class="field">
+        <label>O que mais representa seu momento hoje?</label>
+        <select name="motivacao">
+          <option value="">Selecione</option>
+          {% for m in motivacao_opcoes %}<option value="{{ m }}">{{ m }}</option>{% endfor %}
+        </select>
+      </div>
+
+      <div class="field">
+        <label>O que mais te impede hoje de dar esse próximo passo?</label>
+        <textarea name="dor" rows="3" placeholder="Conte rapidamente..."></textarea>
+      </div>
+
+      <button type="submit" class="submit" id="submit-btn">Quero aplicar</button>
+    </form>
+  </div>
+
+  <p class="footer">FÁBRICA · ASSESSORIA EXECUTORA</p>
+</div>
+<script>
+  document.getElementById('apply-form').addEventListener('submit', function () {
+    var btn = document.getElementById('submit-btn');
+    btn.disabled = true;
+    btn.textContent = 'Enviando...';
+  });
+</script>
+</body>
+</html>
